@@ -1,12 +1,14 @@
-using UnityEngine;
+Ôªøusing UnityEngine;
 using UnityEngine.InputSystem;
 
 public class Player : MonoBehaviour
 {
-    [Tooltip("Vitesse de dÈplacement en unitÈs par secondes")]
+    [Tooltip("Vitesse de d√©placement en unit√©s par secondes")]
     [SerializeField] private float _moveSpeed = 7f;
-    [Tooltip("Vitesse de rotation en degrÈes par secondes")]
+    [Tooltip("Vitesse de rotation en degr√©es par secondes")]
     [SerializeField] private float _rotationSpeed = 720f;
+    [Tooltip("Multiplie la gravit√© appliqu√©e sur le joueur")]
+    [SerializeField] private float _gravityScale = 2.5f;
 
     [SerializeField] private GameInput _gameInput;
 
@@ -21,16 +23,15 @@ public class Player : MonoBehaviour
         
         Vector2 inputVector = _gameInput.GetMovementVectorNormalized();
 
-        Vector3 moveDir = new Vector3(inputVector.x, 0f, inputVector.y);
+        Vector3 moveDir = new(inputVector.x, 0f, inputVector.y);
 
-        // DÈplacement par (tÈlÈportation) position
-        // transform.position += moveDir * Time.deltaTime * _moveSpeed;
+        Vector3 velocity = moveDir * _moveSpeed;
+        velocity.y = _rb.linearVelocity.y;
+        _rb.linearVelocity = velocity;
 
-        //DÈplace par le corps physique de mon joueur par la vitesse
-        // _rb.linearVelocity = _moveSpeed * Time.fixedDeltaTime * moveDir;
-
-        // DÈpace par le corps physique en poussant avec une force
-        _rb.AddForce(moveDir * Time.fixedDeltaTime * _moveSpeed);
+        // Applique a gravit√© suppl√©entaire 
+        Vector3 extraGravity = Physics.gravity * (_gravityScale - 1f);
+        _rb.AddForce(extraGravity, ForceMode.Acceleration);
 
         // Rotation du joueur
 
@@ -38,8 +39,8 @@ public class Player : MonoBehaviour
         {
             Quaternion targetRotation = Quaternion.LookRotation(moveDir);
 
-            transform.rotation = Quaternion.RotateTowards
-                (transform.rotation, targetRotation, _rotationSpeed * Time.deltaTime);
+            _rb.MoveRotation(Quaternion.RotateTowards(_rb.rotation,
+                targetRotation, _rotationSpeed * Time.fixedDeltaTime));
         }
         
     }
