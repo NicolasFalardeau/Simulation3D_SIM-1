@@ -7,7 +7,7 @@ public class Obstacle : MonoBehaviour
 
     private GameManager _gameManager;
     private Renderer _renderer;
-    private Material _initialMaterial;
+    private bool _wasHit;
     private void Awake()
     {
         _renderer= GetComponent<MeshRenderer>();
@@ -19,12 +19,17 @@ public class Obstacle : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.TryGetComponent<Player>(out _))
+        if (!collision.gameObject.TryGetComponent<Player>(out _) || _wasHit)
         {
-            _renderer.material = _hitMaterial;
-            //Augmenter le hitcount dans le gameManager
-            _gameManager.RegisterHit();
+
+            return;
+
         }
+
+        _wasHit = true;
+        _renderer.material = _hitMaterial;
+        //Augmenter le hitcount dans le gameManager
+        _gameManager.RegisterHit();
     }
 
 }
