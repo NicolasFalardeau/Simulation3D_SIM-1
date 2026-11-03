@@ -1,33 +1,76 @@
 ﻿using UnityEngine;
-
+using UnityEngine.SceneManagement;
+using System;
 public class GameManager : MonoBehaviour
 {
-    private int _hitCount;
+
+
+    public static GameManager Instance { get; private set; }
+
+    private int _totalPenalty;
+    public int TotalPenalty => _totalPenalty;
+
+    private float _totalTime;
+    public float TotalTime => _totalTime;
+
+    private int _totalHits;
+    public int TotalHits => _totalHits;
+
+    public static event Action<int> PenaltyChanged;
+
+    private void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        Instance = this;
+        DontDestroyOnLoad(gameObject);
+    }
+
+    private void OnEnable()
+    {
+        Obstacle.Hit += HandleObstacleHit;
+    }
+
+    private void OnDisable()
+    {
+        Obstacle.Hit -= HandleObstacleHit;
+    }
+
+    private void HandleObstacleHit(int p_penaltySeconds)
+    {
+        _totalHits++;
+        _totalPenalty += p_penaltySeconds;
+        PenaltyChanged?.Invoke(_totalPenalty);
+    }
+
 
     private void Start()
     {
-        _hitCount= 0;
-        Debug.Log("Atteignez le burger e plus rapideent possible san toucher d'obstacle");
+
+        Debug.Log("Atteignez l'hambourgeois le plus rapidement possible sans touch� d'obstacle");
     }
 
     /// <summary>
-    /// Méthode qui augmente le nombre de collisions
-    /// </summary>
-    public void RegisterHit()
-    {
-        _hitCount++;
-        Debug.Log($"Accrochages : {_hitCount}");
-    }
-
-    /// <summary>
-    /// Affiche le temps et le résulat du niveau qui vient de se terminer
+    /// Affiche le temps et le r�sultats du niveau qui vient de se terminer
     /// </summary>
     public void CompleteLevel()
     {
-        float duration = Time.timeSinceLevelLoad;
-        float score = duration + _hitCount * 5;
-        Debug.Log("***** Résultats *****");
-        Debug.Log($"Arrivée en {duration:F2} sec., pénalité : {_hitCount * 5}");
-        Debug.Log($"Résultat final : {score:F2} secondes ");
+
+        _totalTime += Time.timeSinceLevelLoad;
+        int nextIndex = SceneManager.GetActiveScene().buildIndex + 1;
+
+        if (nextIndex < SceneManager.sceneCountInBuildSettings)
+        {
+            SceneManager.LoadScene(nextIndex);
+
+        }
+        else
+        {
+            Debug.Log("partie termin�");
+        }
     }
 }

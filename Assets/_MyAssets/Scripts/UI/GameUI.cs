@@ -1,15 +1,54 @@
 using UnityEngine;
-using TMPro
+using TMPro;
 public class GameUI : MonoBehaviour
 {
     [SerializeField] private TMP_Text _timeText;
-    [SerializeField] private TMP_Text _penaltyText;
     [SerializeField] private TMP_Text _hitText;
+    [SerializeField] private TMP_Text _penaltyText;
+
+    [SerializeField] private float _hitMessageDuration = 1f;
+
+    private float _hitMessageEndTime;
+    private float _previousLevelsTime;
+    private void OnEnable()
+    {
+        Obstacle.Hit += HandleObsyacleHit;
+        GameManager.PenaltyChanged += HandlePenaltyChanged;
+    }
+
+    private void OnDisable()
+    {
+        Obstacle.Hit -= HandleObsyacleHit;
+        GameManager.PenaltyChanged -= HandlePenaltyChanged;
+    }
+
+    private void Start()
+    {
+        _previousLevelsTime = GameManager.Instance.TotalTime;
+        _penaltyText.text = $"Penalty : {GameManager.Instance.TotalPenalty}";
+        _hitText.gameObject.SetActive(false);
+    }
+
+    private void HandleObsyacleHit(int p_penaltySeconds)
+    {
+        _hitText.text = $"+{p_penaltySeconds} s";
+        _hitText.gameObject.SetActive(true);
+        _hitMessageEndTime = Time.time + _hitMessageDuration;
+    }
+    private void HandlePenaltyChanged(int p_totalPenalty)
+    {
+        _penaltyText.text = $"Penalty : {p_totalPenalty} s";
+    }
 
     private void Update()
     {
-        // Le teps change a chaque frame
-        _timeText.text = $"Teps : {Time.timeSinceLevelLoad}";
-    }
+        // Le temps change a chaques frame
+        float elapsedTime = _previousLevelsTime + Time.timeSinceLevelLoad;
+        _timeText.text = $"Time : {elapsedTime:F2} s";
 
+        if (_hitText.gameObject.activeSelf && Time.time >= _hitMessageEndTime)
+        {
+            _hitText.gameObject.SetActive(false);
+        }
+    }
 }

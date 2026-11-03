@@ -1,4 +1,5 @@
 using UnityEngine;
+using System;
 
 public class Obstacle : MonoBehaviour
 {
@@ -8,6 +9,13 @@ public class Obstacle : MonoBehaviour
     private GameManager _gameManager;
     private Renderer _renderer;
     private bool _wasHit;
+    private int _penaltySeconds;
+
+    /// <summary>
+    /// Déclenché quand le joueur touche un obstacle
+    /// pénailté en int transmis
+    /// </summary>
+    public static event Action­<int> Hit;
     private void Awake()
     {
         _renderer= GetComponent<MeshRenderer>();
@@ -29,7 +37,7 @@ public class Obstacle : MonoBehaviour
         _wasHit = true;
         _renderer.material = _hitMaterial;
         //Augmenter le hitcount dans le gameManager
-        _gameManager.RegisterHit();
+        Hit.Invoke(_penaltySeconds);
     }
 
 }
